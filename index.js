@@ -18,6 +18,14 @@ var extend = require('extend-shallow');
  * console.log(str);
  * //=> - [@doowb](https://github.com/doowb)
  * //=> - [@jonschlinkert](https://github.com/jonschlinkert)
+ *
+ * // get an array of @ mention objects
+ * var mentions = parse('- @doowb\n- @jonschlinkert', {stringify: false});
+ * console.log(mentions);
+ * //=> [
+ * //=>   {name: 'doowb', mention: '@doowb', index: 2},
+ * //=>   {name: 'jonschlinkert', mention: '@jonschlinkert', index: 11}
+ * //=> ]
  * ```
  *
  * @param  {String} `str` Input string to parse looking for @ mentions.
