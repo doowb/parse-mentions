@@ -4,10 +4,7 @@ var url = require('url');
 var extend = require('extend-shallow');
 var parse = require('./');
 
-var input = `
-- @doowb
-- @jonschlinkert
-`;
+var input = '- @doowb\n- @jonschlinkert';
 
 console.log('=== LIST OF MENTIONS ===');
 console.log(parse(input));

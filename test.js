@@ -6,10 +6,7 @@ var assert = require('assert');
 var extend = require('extend-shallow');
 var parse = require('./');
 
-var input = `
-- @doowb
-- @jonschlinkert
-`;
+var input = '- @doowb\n- @jonschlinkert';
 
 function replace(prefix) {
   return function(name) {
@@ -44,13 +41,13 @@ describe('parse-mentions', function() {
 
   it('should return an array of mentions as objects when stringify is `false`', function() {
     assert.deepEqual(parse(input, {stringify: false}), [
-      {name: 'doowb', mention: '@doowb', index: 3},
-      {name: 'jonschlinkert', mention: '@jonschlinkert', index: 12}
+      {name: 'doowb', mention: '@doowb', index: 2},
+      {name: 'jonschlinkert', mention: '@jonschlinkert', index: 11}
     ]);
   });
 
   it('should return string with the mentions replaced using the replace function', function() {
-    assert.equal(parse(input, replace('https://github.com')), '\n- [@doowb](https://github.com/doowb)\n- [@jonschlinkert](https://github.com/jonschlinkert)\n');
+    assert.equal(parse(input, replace('https://github.com')), '- [@doowb](https://github.com/doowb)\n- [@jonschlinkert](https://github.com/jonschlinkert)');
   });
 
   it('should only parse @ mentions that start with @', function() {
