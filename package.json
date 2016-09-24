@@ -20,10 +20,6 @@
   "scripts": {
     "test": "mocha"
   },
-  "keywords": [
-    "mentions",
-    "parse"
-  ],
   "dependencies": {
     "extend-shallow": "^2.0.1"
   },
@@ -31,6 +27,17 @@
     "gulp-format-md": "^0.1.10",
     "mocha": "^3.0.2"
   },
+  "keywords": [
+    "@-mention",
+    "@-mentions",
+    "@mention",
+    "@mentions",
+    "at-mention",
+    "at-mentions",
+    "mention",
+    "mentions",
+    "parse"
+  ],
   "verb": {
     "toc": false,
     "layout": "default",
