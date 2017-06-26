@@ -46,7 +46,7 @@ function parse(str, options, fn) {
     options = {};
   }
 
-  var re = /(\w@)|@([\w_]{0,15})(?=$|\s)/g;
+  var re = /(\w@)|@([\w_]{0,15})(?=$|[\s\W])/g;
   var opts = extend({}, options);
 
   if (typeof fn === 'function') {
