@@ -10,8 +10,7 @@
   },
   "license": "MIT",
   "files": [
-    "index.js",
-    "LICENSE"
+    "index.js"
   ],
   "main": "index.js",
   "engines": {
@@ -24,8 +23,8 @@
     "extend-shallow": "^2.0.1"
   },
   "devDependencies": {
-    "gulp-format-md": "^0.1.10",
-    "mocha": "^3.0.2"
+    "gulp-format-md": "^0.1.12",
+    "mocha": "^3.4.2"
   },
   "keywords": [
     "@-mention",
