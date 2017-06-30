@@ -10,8 +10,7 @@
   },
   "license": "MIT",
   "files": [
-    "index.js",
-    "LICENSE"
+    "index.js"
   ],
   "main": "index.js",
   "engines": {
@@ -19,9 +18,6 @@
   },
   "scripts": {
     "test": "mocha"
-  },
-  "dependencies": {
-    "extend-shallow": "^2.0.1"
   },
   "devDependencies": {
     "gulp-format-md": "^0.1.10",
@@ -49,9 +45,6 @@
     ],
     "lint": {
       "reflinks": true
-    },
-    "related": {
-      "list": []
     },
     "reflinks": [
       "verb",

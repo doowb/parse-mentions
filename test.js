@@ -3,21 +3,20 @@
 require('mocha');
 var url = require('url');
 var assert = require('assert');
-var extend = require('extend-shallow');
 var parse = require('./');
 
-var input = '- @doowb\n- @jonschlinkert,\n- @pentarex';
-var inputBuildUrl = '- @doowb\n- @jonschlinkert\n- @pentarex';
-
 function replace(prefix) {
-  return function(name) {
-    return `[@${name}](${join(prefix, name)})`;
+  return function(tok) {
+    return `[@${tok.name}](${url.resolve(prefix, tok.name)})`;
   };
 }
 
-function join(prefix, name) {
-  var obj = extend({}, url.parse(prefix), {pathname: name});
-  return url.format(obj);
+function name(str) {
+  var tokens = parse(str);
+  var mentions = tokens.matches;
+  if (mentions && mentions.length) {
+    return mentions[0].name;
+  }
 }
 
 describe('parse-mentions', function() {
@@ -25,41 +24,92 @@ describe('parse-mentions', function() {
     assert.equal(typeof parse, 'function');
   });
 
-  it('should throw an error when invalid args are passed', function(cb) {
-    try {
+  it('should throw an error when invalid args are passed', function() {
+    assert.throws(function() {
       parse();
-      cb(new Error('expected an error'));
-    } catch (err) {
-      assert(err);
-      assert.equal(err.message, 'expected first argument to be a string');
-      cb();
+    });
+  });
+
+  it('should return an array of matches', function() {
+    var mentions1 = parse('foo @doowb bar').matches;
+    assert(Array.isArray(mentions1));
+    assert.equal(mentions1.length, 1);
+
+    var mentions2 = parse('foo @doowb @pentarex bar').matches;
+    assert(Array.isArray(mentions2));
+    assert.equal(mentions2.length, 2);
+
+    var mentions3 = parse('foo @doowb @jonschlinkert @pentarex bar').matches;
+    assert(Array.isArray(mentions3));
+    assert.equal(mentions3.length, 3);
+  });
+
+  it('should return the mention name on each match', function() {
+    var mentions = parse('foo @doowb @jonschlinkert @pentarex bar').matches;
+    assert.equal(mentions[0].name, 'doowb');
+    assert.equal(mentions[1].name, 'jonschlinkert');
+    assert.equal(mentions[2].name, 'pentarex');
+  });
+
+  it('should return match arguments each match', function() {
+    var mentions = parse('foo @doowb @jonschlinkert @pentarex bar').matches;
+    function filter(mention) {
+      return mention.match.filter(Boolean);
     }
+    assert.deepEqual(filter(mentions[0]), [ '@doowb', 'doowb' ]);
+    assert.deepEqual(filter(mentions[1]), [ '@jonschlinkert', 'jonschlinkert' ]);
+    assert.deepEqual(filter(mentions[2]), [ '@pentarex', 'pentarex' ]);
   });
 
-  it('should return an array of mentions', function() {
-    assert.deepEqual(parse(input), ['doowb', 'jonschlinkert', 'pentarex']);
-  });
+  it('should transform matche tokens with the given function', function() {
+    var fixture = '- @doowb\n- @jonschlinkert\n- @pentarex';
 
-  it('should return an array of mentions as objects when stringify is `false`', function() {
-    assert.deepEqual(parse(input, {stringify: false}), [
-      {name: 'doowb', mention: '@doowb', index: 2},
-      {name: 'jonschlinkert', mention: '@jonschlinkert', index: 11},
-      {name: 'pentarex', mention: '@pentarex', index: 29}
+    assert.deepEqual(parse(fixture, replace('https://github.com')).matches, [
+      '[@doowb](https://github.com/doowb)',
+      '[@jonschlinkert](https://github.com/jonschlinkert)',
+      '[@pentarex](https://github.com/pentarex)'
     ]);
   });
 
-  it('should return string with the mentions replaced using the replace function', function() {
-    //TODO Not sure why the normal input is not working here, even in regular situation where there is a sentence like
-    // var input = "Checkout my repo @doowb, there you can find my library" its not going to work, its appending the comma, and not sure from where...
-    assert.equal(parse(inputBuildUrl, replace('https://github.com')), '- [@doowb](https://github.com/doowb)\n- [@jonschlinkert](https://github.com/jonschlinkert)\n- [@pentarex](https://github.com/pentarex)');
+  it('should handle casing correctly', function() {
+    assert.equal(name(' @oNeTwO abc'), 'oNeTwO');
+    assert.equal(name(' @ONE abc'), 'ONE');
   });
 
-  // Because of the change including comma the dot is represented as dot and "bar" is included into the response array. Maybe the username can have dot inside of it, but
-  // maybe discussion with @doowb should be done in order he to approve it
-  // Scenario1: "Checkout this library @bar! Its amazing"
-  // Scenario2: "Checkout this library @bar, @foo! Its amazing"
-  // Scenario3: "Very thoughtful library @doowb..."
-  it('should only parse @ mentions that start with @', function() {
-    assert.deepEqual(parse('@one abc @foo @bar.baz one two@qux fex, @hehe! @forReal?'), ['one', 'foo', 'bar', 'hehe', 'forReal']);
+  it('should handle whitespace correctly', function() {
+    assert.equal(name(' @one '), 'one');
+    assert.equal(name('@one abc'), 'one');
+    assert.equal(name('     @one     '), 'one');
+    assert.equal(name('     @ one     '), undefined);
+  });
+
+  it('should not match when preceded by non-word characters', function() {
+    assert.equal(name('two@qux'), undefined);
+    assert.equal(name('.@qux'), 'qux');
+    assert.equal(name(',@qux'), 'qux');
+  });
+
+  it('should not match when @ is followed by non-word characters', function() {
+    assert.equal(name('@!qux'), undefined);
+    assert.equal(name('@,qux'), undefined);
+    assert.equal(name('@;qux'), undefined);
+    assert.equal(name('@?qux'), undefined);
+    assert.equal(name('@@qux'), undefined);
+  });
+
+  it('should handle trailing punctuation correctly', function() {
+    assert.equal(name('@bar.'), 'bar');
+    assert.equal(name('@bar.baz one '), 'bar');
+    assert.equal(name('@bar. one '), 'bar');
+    assert.equal(name('fex, @foo! '), 'foo');
+    assert.equal(name(',@foo? '), 'foo');
+    assert.equal(name('@foo?'), 'foo');
+    assert.equal(name('@foo;'), 'foo');
+    assert.equal(name('@foo|'), 'foo');
+    assert.equal(name('@foo^'), 'foo');
+    assert.equal(name('@foo*'), 'foo');
+    assert.equal(name('@foo%'), 'foo');
+    assert.equal(name('@foo#'), 'foo');
+    assert.equal(name('@foo@'), 'foo');
   });
 });
