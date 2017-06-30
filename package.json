@@ -19,12 +19,9 @@
   "scripts": {
     "test": "mocha"
   },
-  "dependencies": {
-    "extend-shallow": "^2.0.1"
-  },
   "devDependencies": {
-    "gulp-format-md": "^0.1.12",
-    "mocha": "^3.4.2"
+    "gulp-format-md": "^0.1.10",
+    "mocha": "^3.0.2"
   },
   "keywords": [
     "@-mention",
@@ -48,9 +45,6 @@
     ],
     "lint": {
       "reflinks": true
-    },
-    "related": {
-      "list": []
     },
     "reflinks": [
       "verb",

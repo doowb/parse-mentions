@@ -1,89 +1,35 @@
 'use strict';
 
-var extend = require('extend-shallow');
-
 /**
- * Parse a string to retrieve or replace @ mention strings.
+ * Parses a string and returns an array of `@mention` objects.
  *
  * ```js
- * // get an array of @ mention strings
- * var mentions = parse('- @doowb\n- @jonschlinkert');
- * console.log(mentions);
- * //=> ['doowb', 'jonschlinkert']
- *
- * // replace @ mention strings with a url
- * var str = parse('- @doowb\n- @jonschlinkert', function(name) {
- *   return `[@${name}](https://github.com/${name})`;
- * });
- * console.log(str);
- * //=> - [@doowb](https://github.com/doowb)
- * //=> - [@jonschlinkert](https://github.com/jonschlinkert)
- *
- * // get an array of @ mention objects
- * var mentions = parse('- @doowb\n- @jonschlinkert', {stringify: false});
- * console.log(mentions);
- * //=> [
- * //=>   {name: 'doowb', mention: '@doowb', index: 2},
- * //=>   {name: 'jonschlinkert', mention: '@jonschlinkert', index: 11}
- * //=> ]
+ * var mentions = parseMentions('Foo @doowb bar @jonschlinkert');
  * ```
- *
+ * @name parse
  * @param  {String} `str` Input string to parse looking for @ mentions.
- * @param  {Object} `options` Optional options object to control the output of the @ mentions
- * @param  {Boolean} `options.stringify` Should the @ mentions be stringified in the output array. When `false` an object with additional information about the mention is returned. Defaults to `true`.
  * @param  {Function} `fn` Optional replace function. When passed in, the @ mentions are replaced in the string instead of returned as an array. The new string is returned.
- * @return {String|Array} Array of mentions when a replace function is not passed in.
+ * @return {String|Array} Array of mention objects, with `name` and `match` arguments.
  * @api public
  */
 
-function parse(str, options, fn) {
+module.exports = function(str, fn) {
   if (typeof str !== 'string') {
-    throw new Error('expected first argument to be a string')
+    throw new TypeError('expected a string');
   }
 
-  if (typeof options === 'function') {
-    fn = options;
-    options = {};
-  }
-
-  var re = /(\w@)|@([\w_]{0,15})(?=$|[\s\W])/g;
-  var opts = extend({}, options);
-
-  if (typeof fn === 'function') {
-    return str.replace(re, function(m, $1, $2) {
-      if ($2) return fn($2);
-      return m;
-    });
-  }
-
-  var transform = function(m) {
-    return m[2];
-  };
-
-  // default is to stringify the mentions and just return the array
-  // when false, this allows the user to do replacements based on string index themselves
-  if (opts.stringify === false) {
-    transform = function(m) {
-      return {
-        name: m[2],
-        mention: m[0],
-        index: m.index
-      };
-    };
-  }
-
-  var m;
+  var re = /(?:[\w_＠@][＠@])|[＠@]([\w_]{1,15})(?=$|[^\w_])/g;
   var mentions = [];
-  while(m = re.exec(str)) {
-    if (m[2]) {
-      mentions.push(transform(m));
+  var match;
+
+  while ((match = re.exec(str))) {
+    if (!match[1]) continue;
+    var tok = {name: match[1], match: match };
+    if (typeof fn === 'function') {
+      mentions.push(fn(tok) || tok);
+    } else {
+      mentions.push(tok);
     }
   }
   return mentions;
-}
-
-/**
- * Expose `parse`
- */
-
-module.exports = parse;
+};
