@@ -19,17 +19,16 @@ module.exports = function(str, fn) {
   }
 
   var re = /(?:[\w_＠@][＠@])|[＠@]([\w_]{1,15})(?=$|[^\w_])/g;
-  var mentions = [];
+  var tokens = { input: str, output: str, matches: [] };
   var match;
 
-  while ((match = re.exec(str))) {
+  while ((match = re.exec(tokens.output))) {
     if (!match[1]) continue;
-    var tok = {name: match[1], match: match };
+    var token = { name: match[1], match: match };
     if (typeof fn === 'function') {
-      mentions.push(fn(tok) || tok);
-    } else {
-      mentions.push(tok);
+      token = fn(token, tokens) || token;
     }
+    tokens.matches.push(token);
   }
-  return mentions;
+  return tokens;
 };

@@ -12,7 +12,8 @@ function replace(prefix) {
 }
 
 function name(str) {
-  var mentions = parse(str);
+  var tokens = parse(str);
+  var mentions = tokens.matches;
   if (mentions && mentions.length) {
     return mentions[0].name;
   }
@@ -29,29 +30,29 @@ describe('parse-mentions', function() {
     });
   });
 
-  it('should return an array of mentions', function() {
-    var mentions1 = parse('foo @doowb bar');
+  it('should return an array of matches', function() {
+    var mentions1 = parse('foo @doowb bar').matches;
     assert(Array.isArray(mentions1));
     assert.equal(mentions1.length, 1);
 
-    var mentions2 = parse('foo @doowb @pentarex bar');
+    var mentions2 = parse('foo @doowb @pentarex bar').matches;
     assert(Array.isArray(mentions2));
     assert.equal(mentions2.length, 2);
 
-    var mentions3 = parse('foo @doowb @jonschlinkert @pentarex bar');
+    var mentions3 = parse('foo @doowb @jonschlinkert @pentarex bar').matches;
     assert(Array.isArray(mentions3));
     assert.equal(mentions3.length, 3);
   });
 
   it('should return the mention name on each match', function() {
-    var mentions = parse('foo @doowb @jonschlinkert @pentarex bar');
+    var mentions = parse('foo @doowb @jonschlinkert @pentarex bar').matches;
     assert.equal(mentions[0].name, 'doowb');
     assert.equal(mentions[1].name, 'jonschlinkert');
     assert.equal(mentions[2].name, 'pentarex');
   });
 
   it('should return match arguments each match', function() {
-    var mentions = parse('foo @doowb @jonschlinkert @pentarex bar');
+    var mentions = parse('foo @doowb @jonschlinkert @pentarex bar').matches;
     function filter(mention) {
       return mention.match.filter(Boolean);
     }
@@ -63,7 +64,7 @@ describe('parse-mentions', function() {
   it('should transform matche tokens with the given function', function() {
     var fixture = '- @doowb\n- @jonschlinkert\n- @pentarex';
 
-    assert.deepEqual(parse(fixture, replace('https://github.com')), [
+    assert.deepEqual(parse(fixture, replace('https://github.com')).matches, [
       '[@doowb](https://github.com/doowb)',
       '[@jonschlinkert](https://github.com/jonschlinkert)',
       '[@pentarex](https://github.com/pentarex)'
